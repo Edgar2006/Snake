@@ -5,13 +5,23 @@
 #include "InputMappingContext.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
-
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 AInputCharacter::AInputCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>("Spring Arm");
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->bUsePawnControlRotation = true;
+	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
+	Camera->SetupAttachment(SpringArm);
+	Camera->bUsePawnControlRotation = false;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 
 }
 
@@ -44,12 +54,41 @@ void AInputCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	}
 	if(UEnhancedInputComponent* Input = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		Input->BindAction(InputActionTest, ETriggerEvent::Triggered, this, &AInputCharacter::TestInput);
+		Input->BindAction(InputMoveAction, ETriggerEvent::Triggered, this, &AInputCharacter::MoveAction);
+		Input->BindAction(InputLookAction, ETriggerEvent::Triggered, this, &AInputCharacter::LookAction);
+		Input->BindAction(InputJumpAction, ETriggerEvent::Triggered, this, &AInputCharacter::JumpAction);
+
 	}
 }
 
-void AInputCharacter::TestInput()
+void AInputCharacter::MoveAction(const FInputActionValue& InputValue)
 {
-	GEngine->AddOnScreenDebugMessage(-1,1.f, FColor::Red, "Pressed input action");
+	FVector2D InputVector = InputValue.Get<FVector2D>();
+	if(IsValid(Controller))
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		
+		AddMovementInput(ForwardDirection, InputVector.Y);
+		AddMovementInput(RightDirection, InputVector.X);
+	}
 }
+
+void AInputCharacter::LookAction(const FInputActionValue& InputValue)
+{
+	FVector2D InputVector = InputValue.Get<FVector2D>();
+	if(IsValid(Controller))
+	{
+		AddControllerYawInput(InputVector.X);
+		AddControllerPitchInput(InputVector.Y);
+	}
+}
+
+void AInputCharacter::JumpAction()
+{
+	ACharacter::Jump();
+}
+
 
