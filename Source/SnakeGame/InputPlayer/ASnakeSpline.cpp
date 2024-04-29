@@ -8,11 +8,11 @@ AASnakeSpline::AASnakeSpline()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 	SplineComponent = CreateDefaultSubobject<USplineComponent>("Spline component");
 	HeadStaticMesh = CreateDefaultSubobject<UStaticMesh>("Head SM");
 	BodyStaticMesh = CreateDefaultSubobject<UStaticMesh>("Body SM");
-	
+	HeadCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionVolume"));
+	HeadCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AASnakeSpline::OnHit); 
 }
 
 void AASnakeSpline::OnConstruction(const FTransform& Transform)
@@ -46,8 +46,6 @@ void AASnakeSpline::OnConstruction(const FTransform& Transform)
 	}
 }
 
-
-
 void AASnakeSpline::SetSplineMeshBodyTransform(USplineMeshComponent*& SplineMesh, int Iterator)
 {
 	float StartDistance = (SplineComponent->GetSplineLength()) - Iterator * this->Offset;
@@ -71,20 +69,56 @@ void AASnakeSpline::SetSplineMeshTransformWithoutTangent(USplineMeshComponent*& 
 
 void AASnakeSpline::RemoveNoUsedPoints()
 {
-	while (SplineComponent->GetDistanceAlongSplineAtSplinePoint(0) < SplineComponent->GetSplineLength() - Size*Offset)
+	while (SplineComponent->GetDistanceAlongSplineAtSplinePoint(1) < SplineComponent->GetSplineLength() - Size * Offset && SplineComponent->GetNumberOfSplinePoints() > 3)
 	{
 		SplineComponent->RemoveSplinePoint(0, true);
 	}
 }
 
-void AASnakeSpline::Move(FVector Position)
+
+
+void AASnakeSpline::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if(GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("exav"));
+	}
+
+}
+
+
+void AASnakeSpline::Move(FVector Position, FVector ForwardVector)
 {
 
-	SplineComponent->AddSplinePoint(Position, ESplineCoordinateSpace::World, true);
+	if(GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, ForwardVector.ToString());
+	}
+
+
+	if(SecondForwardVector==ForwardVector)
+	{
+		int splineSize = SplineComponent->GetNumberOfSplinePoints();
+		SplineComponent->SetLocationAtSplinePoint(splineSize-1,Position,ESplineCoordinateSpace::World,true);
+	}
+	else
+	{
+		SplineComponent->AddSplinePoint(Position, ESplineCoordinateSpace::World, true);
+		SplineComponent->SetSplinePointType(SplineComponent->GetNumberOfSplinePoints()-2,ESplinePointType::Linear, true);
+	}
+
+
+	SecondForwardVector = ForwardVector;
 	for(int i = 0;i<ArrSplineMeshComponent.Num();i++)
 	{
 		if(i==0)
 		{
+			float distance = (SplineComponent->GetSplineLength()) - 0 * Offset;
+			FVector NewLoc = SplineComponent->GetLocationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
+			HeadCapsuleComponent->SetRelativeLocation(NewLoc);
+
+
+
 			SetSplineMeshTransformWithoutTangent(ArrSplineMeshComponent[i],i, Offset, FVector(2,1,1));
 		}
 		else
@@ -118,7 +152,9 @@ void AASnakeSpline::Move(FVector Position)
 void AASnakeSpline::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+
+
 }
 
 // Called every frame

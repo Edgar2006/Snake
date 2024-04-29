@@ -27,11 +27,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
 	class UInputAction* InputMoveAction;
 
-	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
-	class UInputAction* InputJumpAction;
-
-	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
-	class UInputAction* InputLookAction;
 
 public:
 	// Sets default values for this character's properties
@@ -50,7 +45,5 @@ public:
 
 protected:
 	void MoveAction(const FInputActionValue& InputValue);
-	void LookAction(const FInputActionValue& InputValue);
-	void JumpAction();
 
 };

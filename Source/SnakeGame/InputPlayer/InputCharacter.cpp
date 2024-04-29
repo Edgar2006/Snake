@@ -16,12 +16,11 @@ AInputCharacter::AInputCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>("Spring Arm");
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->bUsePawnControlRotation = false;
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(SpringArm);
 	Camera->bUsePawnControlRotation = false;
-	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 }
 
@@ -55,9 +54,6 @@ void AInputCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	if(UEnhancedInputComponent* Input = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		Input->BindAction(InputMoveAction, ETriggerEvent::Triggered, this, &AInputCharacter::MoveAction);
-		Input->BindAction(InputLookAction, ETriggerEvent::Triggered, this, &AInputCharacter::LookAction);
-		Input->BindAction(InputJumpAction, ETriggerEvent::Triggered, this, &AInputCharacter::JumpAction);
-
 	}
 }
 
@@ -74,21 +70,6 @@ void AInputCharacter::MoveAction(const FInputActionValue& InputValue)
 		AddMovementInput(ForwardDirection, InputVector.Y);
 		AddMovementInput(RightDirection, InputVector.X);
 	}
-}
-
-void AInputCharacter::LookAction(const FInputActionValue& InputValue)
-{
-	FVector2D InputVector = InputValue.Get<FVector2D>();
-	if(IsValid(Controller))
-	{
-		AddControllerYawInput(InputVector.X);
-		AddControllerPitchInput(InputVector.Y);
-	}
-}
-
-void AInputCharacter::JumpAction()
-{
-	ACharacter::Jump();
 }
 
 
