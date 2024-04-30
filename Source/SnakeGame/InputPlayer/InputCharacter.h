@@ -2,9 +2,13 @@
 
 #pragma once
 
+
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+
+#include "Components/CapsuleComponent.h"
+#include "SnakeGame/InputPlayer/ASnakeSpline.h"
 #include "InputCharacter.generated.h"
 
 UCLASS()
@@ -28,6 +32,13 @@ protected:
 	class UInputAction* InputMoveAction;
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spline")
+	UCapsuleComponent* HeadCapsuleComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spline")
+	class AASnakeSpline* Snake;
+
+
 public:
 	// Sets default values for this character's properties
 	AInputCharacter();
@@ -45,5 +56,11 @@ public:
 
 protected:
 	void MoveAction(const FInputActionValue& InputValue);
+
+
+
+	UFUNCTION(BlueprintCallable)    
+	void OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,const FHitResult& SweepResult);
+
 
 };

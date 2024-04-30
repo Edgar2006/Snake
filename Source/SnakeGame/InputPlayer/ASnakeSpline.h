@@ -1,8 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include "Components/CapsuleComponent.h"
-
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
 #include "CoreMinimal.h"
@@ -23,8 +21,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spline")
 	USplineComponent* SplineComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spline")
-	UCapsuleComponent* HeadCapsuleComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spline")
 	TArray<USplineMeshComponent*> ArrSplineMeshComponent;
@@ -68,13 +64,15 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void RemoveNoUsedPoints();
 
-	UFUNCTION(BlueprintCallable)    
-	void OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,const FHitResult& SweepResult);
-
 
 public:
 	UFUNCTION(BlueprintCallable)
 	void Move(FVector Position, FVector ForwardVector);
+
+	UFUNCTION(BlueprintCallable)
+	void AddNewElement();
+
+
 
 public:	
 	// Sets default values for this actor's properties
@@ -85,8 +83,5 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 };

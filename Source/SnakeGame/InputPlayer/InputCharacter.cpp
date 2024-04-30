@@ -8,12 +8,18 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "SnakeGame/InputPlayer/InteractInterface.h"
 
 // Sets default values
 AInputCharacter::AInputCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+
+	HeadCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Snake"));
+	HeadCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AInputCharacter::OnHit); 
+
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>("Spring Arm");
 	SpringArm->bUsePawnControlRotation = false;
@@ -69,6 +75,31 @@ void AInputCharacter::MoveAction(const FInputActionValue& InputValue)
 		
 		AddMovementInput(ForwardDirection, InputVector.Y);
 		AddMovementInput(RightDirection, InputVector.X);
+	}
+
+
+	Snake->Move(this->GetActorLocation() + this->Mesh->GetForwardVector(), this->Mesh->GetForwardVector());
+}
+
+void AInputCharacter::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+
+
+	if(IInteractInterface* InteractInterface = Cast<IInteractInterface>(OtherActor))
+	{
+		if(GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("aaaaaaaaaasa"));
+
+		}
+
+		InteractInterface->Interact(Snake);
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("aaaaaaaaaasa"));
+
+		this->Destroy();
 	}
 }
 

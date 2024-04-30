@@ -11,8 +11,7 @@ AASnakeSpline::AASnakeSpline()
 	SplineComponent = CreateDefaultSubobject<USplineComponent>("Spline component");
 	HeadStaticMesh = CreateDefaultSubobject<UStaticMesh>("Head SM");
 	BodyStaticMesh = CreateDefaultSubobject<UStaticMesh>("Body SM");
-	HeadCapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CollisionVolume"));
-	HeadCapsuleComponent->OnComponentBeginOverlap.AddDynamic(this, &AASnakeSpline::OnHit); 
+
 }
 
 void AASnakeSpline::OnConstruction(const FTransform& Transform)
@@ -20,7 +19,7 @@ void AASnakeSpline::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 
 
-	for(int i = 0;i < Size;i++)
+	for(int i = 0;i < this->Size;i++)
 	{
 
 		FString Str = "TAG_Button_UP_" + FString::FromInt(i + 1);
@@ -48,20 +47,20 @@ void AASnakeSpline::OnConstruction(const FTransform& Transform)
 
 void AASnakeSpline::SetSplineMeshBodyTransform(USplineMeshComponent*& SplineMesh, int Iterator)
 {
-	float StartDistance = (SplineComponent->GetSplineLength()) - Iterator * this->Offset;
-	float EndDistance = (SplineComponent->GetSplineLength()) - (Iterator - 1) * this->Offset;
-	FVector StartLoc = SplineComponent->GetLocationAtDistanceAlongSpline(StartDistance, ESplineCoordinateSpace::Local);
-	FVector EndLoc = SplineComponent->GetLocationAtDistanceAlongSpline(EndDistance, ESplineCoordinateSpace::Local);
-	FVector StartTang = SplineComponent->GetTangentAtDistanceAlongSpline(StartDistance, ESplineCoordinateSpace::Local);
-	FVector EndTang = SplineComponent->GetTangentAtDistanceAlongSpline(EndDistance, ESplineCoordinateSpace::Local);
+	float StartDistance = (this->SplineComponent->GetSplineLength()) - Iterator * this->Offset;
+	float EndDistance = (this->SplineComponent->GetSplineLength()) - (Iterator - 1) * this->Offset;
+	FVector StartLoc = this->SplineComponent->GetLocationAtDistanceAlongSpline(StartDistance, ESplineCoordinateSpace::Local);
+	FVector EndLoc = this->SplineComponent->GetLocationAtDistanceAlongSpline(EndDistance, ESplineCoordinateSpace::Local);
+	FVector StartTang = this->SplineComponent->GetTangentAtDistanceAlongSpline(StartDistance, ESplineCoordinateSpace::Local);
+	FVector EndTang = this->SplineComponent->GetTangentAtDistanceAlongSpline(EndDistance, ESplineCoordinateSpace::Local);
 	SplineMesh->SetStartAndEnd(StartLoc, StartTang, EndLoc, EndTang);
 }
 
 void AASnakeSpline::SetSplineMeshTransformWithoutTangent(USplineMeshComponent*& SplineMesh, int Iterator, float OffsetWithElement, FVector Scale)
 {
 
-	float distance = (SplineComponent->GetSplineLength()) - Iterator * OffsetWithElement;
-	FTransform NewTransform = SplineComponent->GetTransformAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local, false);
+	float distance = (this->SplineComponent->GetSplineLength()) - Iterator * OffsetWithElement;
+	FTransform NewTransform = this->SplineComponent->GetTransformAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local, false);
 	NewTransform.SetScale3D(Scale);
 	SplineMesh->SetRelativeTransform(NewTransform);
 
@@ -69,81 +68,82 @@ void AASnakeSpline::SetSplineMeshTransformWithoutTangent(USplineMeshComponent*& 
 
 void AASnakeSpline::RemoveNoUsedPoints()
 {
-	while (SplineComponent->GetDistanceAlongSplineAtSplinePoint(1) < SplineComponent->GetSplineLength() - Size * Offset && SplineComponent->GetNumberOfSplinePoints() > 3)
+	while (this->SplineComponent->GetDistanceAlongSplineAtSplinePoint(1) < this->SplineComponent->GetSplineLength() - Size * Offset && this->SplineComponent->GetNumberOfSplinePoints() > 3)
 	{
-		SplineComponent->RemoveSplinePoint(0, true);
+		this->SplineComponent->RemoveSplinePoint(0, true);
 	}
 }
 
 
-
-void AASnakeSpline::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if(GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("exav"));
-	}
-
-}
 
 
 void AASnakeSpline::Move(FVector Position, FVector ForwardVector)
 {
 
-	if(GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, ForwardVector.ToString());
-	}
 
-
-	if(SecondForwardVector==ForwardVector)
+	if(this->SecondForwardVector==ForwardVector)
 	{
-		int splineSize = SplineComponent->GetNumberOfSplinePoints();
-		SplineComponent->SetLocationAtSplinePoint(splineSize-1,Position,ESplineCoordinateSpace::World,true);
+		int splineSize = this->SplineComponent->GetNumberOfSplinePoints();
+		this->SplineComponent->SetLocationAtSplinePoint(splineSize-1,Position,ESplineCoordinateSpace::World,true);
 	}
 	else
 	{
-		SplineComponent->AddSplinePoint(Position, ESplineCoordinateSpace::World, true);
-		SplineComponent->SetSplinePointType(SplineComponent->GetNumberOfSplinePoints()-2,ESplinePointType::Linear, true);
+		this->SplineComponent->AddSplinePoint(Position, ESplineCoordinateSpace::World, true);
+		this->SplineComponent->SetSplinePointType(this->SplineComponent->GetNumberOfSplinePoints()-2,ESplinePointType::Linear, true);
 	}
 
 
-	SecondForwardVector = ForwardVector;
-	for(int i = 0;i<ArrSplineMeshComponent.Num();i++)
+	this->SecondForwardVector = ForwardVector;
+	for(int i = 0;i<this->ArrSplineMeshComponent.Num();i++)
 	{
 		if(i==0)
 		{
-			float distance = (SplineComponent->GetSplineLength()) - 0 * Offset;
-			FVector NewLoc = SplineComponent->GetLocationAtDistanceAlongSpline(distance, ESplineCoordinateSpace::Local);
-			HeadCapsuleComponent->SetRelativeLocation(NewLoc);
-
-
-
-			SetSplineMeshTransformWithoutTangent(ArrSplineMeshComponent[i],i, Offset, FVector(2,1,1));
+			SetSplineMeshTransformWithoutTangent(this->ArrSplineMeshComponent[i],i, this->Offset, FVector(1,1,1));
 		}
 		else
 		{
 			if(bWithTangent)
 			{
-				SetSplineMeshBodyTransform(ArrSplineMeshComponent[i], i);
+				SetSplineMeshBodyTransform(this->ArrSplineMeshComponent[i], i);
 			}
 			else
 			{
-				SetSplineMeshTransformWithoutTangent(ArrSplineMeshComponent[i],i, BodyLenght, FVector(1,1,1));
+				SetSplineMeshTransformWithoutTangent(this->ArrSplineMeshComponent[i],i, this->BodyLenght, FVector(1,1,1));
 			}
 		}
 	}
 
-	if(Heap == MaxHeap)
+	if(this->Heap == this->MaxHeap)
 	{
-		Heap = 0;
+		this->Heap = 0;
 		RemoveNoUsedPoints();
 	}
 	else
 	{
-		++Heap;
+		this->Heap++;
 	}
 
+
+}
+
+void AASnakeSpline::AddNewElement()
+{
+	this->Size++;
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("avel"));
+
+	FString Str = "TAG_Button_UP_" + FString::FromInt(this->Size);
+	FName InitialName = (*Str);
+
+	USplineMeshComponent* splineMesh = NewObject<USplineMeshComponent>(this, InitialName);
+	this->ArrSplineMeshComponent.Add(splineMesh);
+	splineMesh->RegisterComponent();
+	splineMesh->SetMobility(EComponentMobility::Movable);
+	splineMesh->SetStaticMesh(BodyStaticMesh);	
+	splineMesh->SetWorldLocation(FVector(0,0,0));
+	splineMesh->SetWorldRotation(FRotator(0,0,0));
+	splineMesh->SetRelativeScale3D(FVector(1,1,1));
+	splineMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+	splineMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 }
 
@@ -154,13 +154,6 @@ void AASnakeSpline::BeginPlay()
 	Super::BeginPlay();
 
 
-
-}
-
-// Called every frame
-void AASnakeSpline::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 
 }
 
