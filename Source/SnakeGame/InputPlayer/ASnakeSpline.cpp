@@ -147,6 +147,11 @@ void AASnakeSpline::AddNewElement()
 
 }
 
+int AASnakeSpline::GetSize()
+{
+	return this->Size;
+}
+
 
 // Called when the game starts or when spawned
 void AASnakeSpline::BeginPlay()

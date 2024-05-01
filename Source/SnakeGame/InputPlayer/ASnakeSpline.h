@@ -72,6 +72,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AddNewElement();
 
+	UFUNCTION(BlueprintCallable)
+	int GetSize();
+
 
 
 public:	

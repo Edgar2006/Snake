@@ -17,6 +17,13 @@ void AAFood::BeginPlay()
 	Super::BeginPlay();
 	
 }
+void AAFood::randLoc()
+{
+	this->SetActorLocation(FVector(FMath::RandRange(-x,x),FMath::RandRange(-y,y),this->GetActorLocation().Z));
+}
+
+
+
 void AAFood::Interact(AASnakeSpline* snake)
 {
 	if(GEngine)
@@ -24,7 +31,7 @@ void AAFood::Interact(AASnakeSpline* snake)
 		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("exav"));
 	}
 	snake->AddNewElement();
-	this->Destroy();
+	this->randLoc();
 }
 
 

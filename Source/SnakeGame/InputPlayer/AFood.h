@@ -16,6 +16,17 @@ class SNAKEGAME_API AAFood : public AActor, public IInteractInterface
 {
 	GENERATED_BODY()
 	
+protected:
+
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Size")
+	float x;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Size")
+	float y;
+
 public:	
 	// Sets default values for this actor's properties
 	AAFood();
@@ -23,6 +34,11 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+protected:
+
+	UFUNCTION(BlueprintCallable)
+	void randLoc();
 
 
 public:

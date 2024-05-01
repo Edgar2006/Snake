@@ -17,6 +17,10 @@ class SNAKEGAME_API AInputCharacter : public ACharacter
 	GENERATED_BODY()
 
 
+private:
+	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAcess = "true"))
+	FVector2D InputVector;
+
 protected:
 
 	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAcess = "true"))
@@ -38,7 +42,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spline")
 	class AASnakeSpline* Snake;
 
-
+protected:
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TSubclassOf<class UUserHUD> UserWidgetClass;
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	class UUserHUD* UserWidget;
 public:
 	// Sets default values for this character's properties
 	AInputCharacter();
@@ -46,6 +54,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayerReason) override;
 
 public:	
 	// Called every frame

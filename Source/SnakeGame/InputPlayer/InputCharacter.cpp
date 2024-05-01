@@ -9,6 +9,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "SnakeGame/InputPlayer/InteractInterface.h"
+#include "SnakeGame/InputPlayer/UserHUD.h"
+#include "Blueprint/UserWidget.h"
 
 // Sets default values
 AInputCharacter::AInputCharacter()
@@ -27,6 +29,10 @@ AInputCharacter::AInputCharacter()
 	Camera->SetupAttachment(SpringArm);
 	Camera->bUsePawnControlRotation = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+	
+
+	UserWidget = nullptr;
+	UserWidgetClass = nullptr;
 
 }
 
@@ -34,7 +40,26 @@ AInputCharacter::AInputCharacter()
 void AInputCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if(IsLocallyControlled() && UserWidgetClass)
+	{
+		UserWidget = CreateWidget<UUserHUD>(GetWorld( ), UserWidgetClass);
+		UserWidget->AddToPlayerScreen();
+	}
+	UserWidget->SetScorre(Snake->GetSize());
+
+}
+
+void AInputCharacter::EndPlay(const EEndPlayReason::Type EndPlayerReason)
+{
+	if(UserWidget)
+	{
+		UserWidget->RemoveFromParent();
+		UserWidget = nullptr;
+	}
+
+
+	Super::EndPlay(EndPlayerReason);
 }
 
 // Called every frame
@@ -42,6 +67,18 @@ void AInputCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+
+	if(IsValid(Controller))
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		AddMovementInput(ForwardDirection, InputVector.Y);
+		AddMovementInput(RightDirection, InputVector.X);
+	}
+	Snake->Move(this->GetActorLocation() + this->Mesh->GetForwardVector(), this->Mesh->GetForwardVector());
 }
 
 // Called to bind functionality to input
@@ -65,20 +102,8 @@ void AInputCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void AInputCharacter::MoveAction(const FInputActionValue& InputValue)
 {
-	FVector2D InputVector = InputValue.Get<FVector2D>();
-	if(IsValid(Controller))
-	{
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		
-		AddMovementInput(ForwardDirection, InputVector.Y);
-		AddMovementInput(RightDirection, InputVector.X);
-	}
-
-
-	Snake->Move(this->GetActorLocation() + this->Mesh->GetForwardVector(), this->Mesh->GetForwardVector());
+	InputVector = InputValue.Get<FVector2D>();
+	
 }
 
 void AInputCharacter::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -87,18 +112,12 @@ void AInputCharacter::OnHit(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 
 	if(IInteractInterface* InteractInterface = Cast<IInteractInterface>(OtherActor))
 	{
-		if(GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("aaaaaaaaaasa"));
-
-		}
-
 		InteractInterface->Interact(Snake);
+		UserWidget->SetScorre(Snake->GetSize());
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("aaaaaaaaaasa"));
-
+		
 		this->Destroy();
 	}
 }
