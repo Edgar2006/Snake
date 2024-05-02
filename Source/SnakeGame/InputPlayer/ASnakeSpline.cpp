@@ -157,8 +157,5 @@ int AASnakeSpline::GetSize()
 void AASnakeSpline::BeginPlay()
 {
 	Super::BeginPlay();
-
-
-
 }
 

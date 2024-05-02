@@ -20,6 +20,7 @@ void AAFood::BeginPlay()
 void AAFood::randLoc()
 {
 	this->SetActorLocation(FVector(FMath::RandRange(-x,x),FMath::RandRange(-y,y),this->GetActorLocation().Z));
+	this->SetActorRelativeRotation(FRotator(0,FMath::RandRange(0,360),0));
 }
 
 

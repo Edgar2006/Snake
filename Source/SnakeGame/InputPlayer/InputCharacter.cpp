@@ -43,10 +43,21 @@ void AInputCharacter::BeginPlay()
 
 	if(IsLocallyControlled() && UserWidgetClass)
 	{
-		UserWidget = CreateWidget<UUserHUD>(GetWorld( ), UserWidgetClass);
+		UserWidget = CreateWidget<UUserHUD>(GetWorld(), UserWidgetClass);
 		UserWidget->AddToPlayerScreen();
 	}
 	UserWidget->SetScorre(Snake->GetSize());
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+
+	if (PC)
+	{
+		PC->bShowMouseCursor = true; 
+		PC->bEnableClickEvents = true; 
+		PC->bEnableMouseOverEvents = true;
+	}
+
+
 
 }
 
